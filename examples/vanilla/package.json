@@ -2,7 +2,14 @@
   "name": "vanilla",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "dev": "snowpack dev",
+    "build": "snowpack build"
+  },
   "dependencies": {
     "@user-presence/client": "*"
+  },
+  "devDependencies": {
+    "snowpack": "^3.8.8"
   }
 }

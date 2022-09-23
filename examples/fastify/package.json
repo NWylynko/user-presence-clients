@@ -2,7 +2,18 @@
   "name": "fastify",
   "version": "0.0.0",
   "private": true,
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon ./src/index.ts"
+  },
   "dependencies": {
-    "@user-presence/server": "*"
+    "@user-presence/server": "*",
+    "fastify": "^4.6.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node16": "^1.0.3",
+    "@types/node": "^18.7.18",
+    "nodemon": "^2.0.20",
+    "ts-node": "^10.9.1"
   }
 }
