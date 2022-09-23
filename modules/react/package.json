@@ -1,5 +1,11 @@
 {
   "name": "@user-presence/react",
+  "version": "0.0.0",
   "private": "false",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@user-presence/types": "*",
+    "@user-presence/client": "*",
+    "typescript": "^4.8.3"
+  }
 }

@@ -1,4 +1,8 @@
 {
   "name": "@user-presence/types",
-  "license": "MIT"
+  "version": "0.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.8.3"
+  }
 }

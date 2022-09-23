@@ -1,5 +1,10 @@
 {
   "name": "@user-presence/server",
+  "version": "0.0.0",
   "private": "false",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@user-presence/types": "*",
+    "typescript": "^4.8.3"
+  }
 }
