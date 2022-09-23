@@ -3,8 +3,25 @@
   "version": "0.0.0",
   "private": "false",
   "license": "MIT",
+  "scripts": {
+    "dev": "microbundle watch",
+    "build": "microbundle"
+  },
+  "type": "module",
+  "source": "./src/index.ts",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.modern.js"
+  },
+  "types": "./dist/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.module.js",
+  "unpkg": "./dist/index.umd.js",
+  "dependencies": {},
   "devDependencies": {
     "@user-presence/types": "*",
+    "microbundle": "^0.15.1",
     "typescript": "^4.8.3"
   }
 }
