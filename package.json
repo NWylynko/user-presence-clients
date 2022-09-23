@@ -1,0 +1,22 @@
+{
+  "name": "user-presence",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "modules/*",
+    "shared/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel"
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {},
+  "packageManager": "yarn@1.22.19"
+}
