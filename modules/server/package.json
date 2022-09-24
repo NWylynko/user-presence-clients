@@ -22,7 +22,6 @@
     "axios": "^0.27.2"
   },
   "devDependencies": {
-    "@user-presence/types": "*",
     "microbundle": "^0.15.1",
     "typescript": "^4.8.3"
   }
