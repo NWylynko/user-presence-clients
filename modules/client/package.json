@@ -1,7 +1,7 @@
 {
   "name": "@user-presence/client",
   "version": "0.0.0",
-  "private": "false",
+  "private": false,
   "license": "MIT",
   "scripts": {
     "dev": "microbundle watch",

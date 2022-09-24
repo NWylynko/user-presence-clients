@@ -1,1 +1,2 @@
-import React from "react"
+export { Provider } from './provider';
+
