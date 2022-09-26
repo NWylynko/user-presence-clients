@@ -1,2 +1,2 @@
-export { Provider } from './provider';
+export { createPresenceProvider } from './createProvider';
 

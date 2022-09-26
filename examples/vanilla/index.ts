@@ -1,29 +1,35 @@
 
-import { getPresence } from "@user-presence/client";
+import { createPresence } from "@user-presence/client";
 
 type status = "NAHYEAH" | "YEAHNAH" | "PARTY"
 
-const presence = getPresence<status>({
+const presence = createPresence<status>({
   mode: "manual",
+  api_key: "456",
   connectedStatus: "NAHYEAH",
   disconnectedStatus: "YEAHNAH",
-  onStatusChange: (newStatus) => console.log({ online: newStatus === "NAHYEAH", newStatus })
+  onStatusChange: (newStatus) => console.log({ online: newStatus === "NAHYEAH", newStatus }),
 })
 
-console.log({ presence })
+const user = presence({ userId: "123" })
+
+console.log({ presence, user })
 console.log({
-  status: presence.status
+  status: user.status
 })
 
-presence.setStatus("PARTY")
-presence.setStatus("NAHYEAH")
+user.setStatus("PARTY")
+user.setStatus("NAHYEAH")
 
-const presence2 = getPresence({
+const presence2 = createPresence({
   mode: "auto",
-  onStatusChange: (newStatus) => console.log({ newStatus })
+  api_key: "678",
+  onStatusChange: (newStatus) => console.log({ newStatus }),
 })
 
-console.log({ presence2 })
+const user2 = presence2({ userId: "789" })
+
+console.log({ presence2, user2 })
 console.log({
-  status: presence2.status
+  status: user2.status
 })

@@ -1,5 +1,5 @@
 
-export { getPresence } from "./getPresence";
+export { createPresence } from "./createPresence";
 
-export type { AutoOnStatusChange } from "./getAutoPresence";
-export type { ManualOnStatusChange } from "./getManualPresence";
+export type { AutoOnStatusChange } from "./createAutoPresence";
+export type { ManualOnStatusChange } from "./createManualPresence";
