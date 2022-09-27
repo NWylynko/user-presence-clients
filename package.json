@@ -9,10 +9,12 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
-    "bump": "bumpp"
+    "changelog": "changeset",
+    "versions": "changeset version",
+    "publish-modules": "changeset publish"
   },
   "devDependencies": {
-    "bumpp": "^8.2.1",
+    "@changesets/cli": "^2.24.4",
     "turbo": "^1.5.2"
   },
   "engines": {
