@@ -1,8 +1,14 @@
 {
   "name": "@user-presence/react",
-  "version": "0.0.0",
+  "homepage": "https://github.com/NWylynko/user-presence-clients/tree/main/modules/react#readme",
+  "version": "0.2.1",
   "private": false,
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NWylynko/user-presence-clients.git",
+    "directory": "modules/react"
+  },
   "scripts": {
     "dev": "microbundle watch --jsx React.createElement --jsxFragment React.Fragment --jsxImportSource react",
     "build": "microbundle --jsx React.createElement --jsxFragment React.Fragment --jsxImportSource react"
@@ -18,14 +24,19 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.module.js",
   "unpkg": "./dist/index.umd.js",
+  "dependencies": {
+    "@user-presence/client": "*"
+  },
   "devDependencies": {
     "@types/react": "^18.0.21",
-    "@user-presence/client": "*",
     "microbundle": "^0.15.1",
     "react": "^18.2.0",
     "typescript": "^4.8.3"
   },
   "peerDependencies": {
     "react": "^18.2.0"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
