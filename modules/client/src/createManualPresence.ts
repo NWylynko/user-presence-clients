@@ -59,6 +59,12 @@ export function createManualPresence<Status = DefaultManualStatus>(
 
       onStatusChange(newStatus);
 
+      const ws = connection.getWS()
+
+      if (ws) {
+        ws.send(JSON.stringify({ e: "stat", s: newStatus }))
+      }
+
       return newStatus;
     };
 
