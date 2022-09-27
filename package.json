@@ -10,7 +10,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "changelog": "changeset",
-    "versions": "changeset version",
+    "up-versions": "changeset version",
     "publish-modules": "changeset publish"
   },
   "devDependencies": {
