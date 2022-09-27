@@ -36,7 +36,19 @@ export function createManualProvider<Status = DefaultManualStatus>(
 
     const user = instantiateUser(userOptions, setStatus);
 
-    return <Context.Provider value={{ ...user, status }}>{children}</Context.Provider>;
+    useEffect(() => {
+      if (options.autoConnect) {
+        user.connect();
+        return () => {
+          user.disconnect();
+        };
+      }
+    }, []);
+
+    // here we overwrite the variable status with a react state status
+    const values = { ...user, status };
+
+    return <Context.Provider value={values}>{children}</Context.Provider>;
   };
 
   const usePresence: UseContext<Status> = () => useContext(Context);
