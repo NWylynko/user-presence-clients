@@ -1,81 +1,161 @@
 
+const URL = "ws://localhost:4000"
+
 // one hour
-const MAX_CONNECTION_TIME = 1000 * 60 * 60
+const MAX_CONNECTION_TIME = 1000 * 70
+// const MAX_CONNECTION_TIME = 1000 * 60 * 60
 
 // forcefully disconnect 10 seconds before instead of being kicked off
 const connectionTime = MAX_CONNECTION_TIME - 10 * 1000
 
-export const createWebsocket = () => {
+const defaultVoidFunctions = {
 
-  let ws: WebSocket | undefined = undefined;
+  onConnect: () => { },
+  onDisconnect: () => { },
+  onConnectionChange: (connected: boolean) => { },
 
-  let connected = false;
-  let loading = false;
-  let error: string | undefined = undefined;
+  onStartLoading: () => { },
+  onStopLoading: () => { },
+  onLoadingChange: (loading: boolean) => { },
 
-  let timeout: NodeJS.Timeout;
+  onError: (error: string) => { },
+  onErrorChange: (error: string | undefined) => { },
 
-  const open = () => {
+}
 
-    connected = false;
-    loading = true;
-    error = undefined;
+export type ConnectionFunctions = Partial<typeof defaultVoidFunctions>
 
-    ws = new WebSocket("wss://4000-nwylynko-userpresencews-jw6lgtmj84e.ws-us67.gitpod.io")
+interface OpenOptions {
+  auth: {
+    api_key: string;
+    userId: string;
+  }
+}
 
-    ws.onopen = (event) => {
+export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
-      console.log(`connection to ws is open`)
+  // this is just to make calling the functions cleaner
+  // as we don't have to check if they are defined or not
+  const functions = { ...defaultVoidFunctions, ...customFunctions }
 
-      connected = true;
-      loading = false;
-      error = undefined;
+  let ws: WebSocket | undefined;
 
-      timeout = setTimeout(() => {
+  const { state: connected, setState: setConnected } = useBooleanState({
+    initialState: false,
+    onTrue: functions.onConnect,
+    onFalse: functions.onDisconnect,
+    onToggle: functions.onConnectionChange,
+  });
 
-        ws?.close();
-        ws = undefined;
+  const { state: loading, setState: setLoading } = useBooleanState({
+    initialState: false,
+    onTrue: functions.onStartLoading,
+    onFalse: functions.onStopLoading,
+    onToggle: functions.onLoadingChange,
+  })
 
-        open();
-      }, connectionTime)
+  const { state: error, setState: setError } = useStringState({
+    initialState: undefined,
+    onString: functions.onError,
+    onStringChange: functions.onErrorChange
+  })
 
-    }
+  let timeout: NodeJS.Timeout; // used to open and close connection to ws service
 
-    ws.onclose = (event) => {
+  const open = (options: OpenOptions) => {
 
-      console.log(`connection to ws is closed`)
+    return new Promise<WebSocket | undefined>((resolve, reject) => {
 
-      connected = false;
-      loading = false;
-      error = undefined;
-    }
 
-    ws.onerror = (event) => {
+      setConnected(false);
+      setLoading(true);
+      setError(undefined);
 
-      console.log(`connection to ws errored`)
+      ws = new WebSocket(URL)
 
-      connected = false;
-      loading = false;
-      error = `Error while attempting to connect to user-presence`
-    }
+      ws.onopen = (event) => {
 
-    return ws;
+        if (ws) {
+
+          console.log(`connection to ws is open`)
+
+          setConnected(true);
+          setLoading(false);
+          setError(undefined);
+
+          ws.send(JSON.stringify({ e: "auth", key: options.auth.api_key, id: options.auth.userId }))
+
+          timeout = setTimeout(() => {
+
+            // we don't want to call the close function here
+            // because we want it to be transparent that we
+            // are reconnecting to the ws service
+
+            // so we silently close the websocket connection
+            // and reopen it calling this function recursively
+
+            ws?.close();
+            ws = undefined;
+
+            open(options);
+          }, connectionTime)
+
+        } else {
+          throw new Error(`ws.onopen was called but ws is undefined`)
+        }
+
+        resolve(ws);
+
+      }
+
+      ws.onerror = (event) => {
+
+        console.log(`connection to ws errored`)
+
+        setConnected(false);
+        setLoading(false);
+        setError(`Error while attempting to connect to user-presence`)
+
+        reject(`Error while attempting to connect to user-presence`)
+      }
+
+    })
 
   }
 
   const close = () => {
 
-    ws?.close();
-    ws = undefined;
-    clearTimeout(timeout);
+    return new Promise<void>((resolve, reject) => {
 
-    connected = false;
-    loading = false;
-    error = undefined;
+      clearTimeout(timeout);
+
+      if (ws) {
+        ws.onclose = (event) => {
+
+          console.log(`connection to ws is closed`)
+
+          setConnected(false);
+          setLoading(false);
+          setError(undefined);
+
+          resolve();
+
+        }
+      } else {
+        resolve();
+      }
+
+      ws?.close();
+      ws = undefined;
+
+    })
+
   }
 
+  const getWS = () => ws;
+
   return {
-    ws,
+    getWS,
     open,
     close,
     connected,
@@ -86,3 +166,53 @@ export const createWebsocket = () => {
 }
 
 export type Connection = ReturnType<typeof createWebsocket>
+
+interface BooleanStateOptions {
+  initialState: boolean;
+  onTrue: () => void;
+  onFalse: () => void;
+  onToggle: (state: boolean) => void;
+}
+
+const useBooleanState = (options: BooleanStateOptions) => {
+  let state = options.initialState
+
+  const setState = (newState: boolean) => {
+    newState ? options.onTrue() : options.onFalse();
+    options.onToggle(newState);
+
+    return newState
+  }
+
+  return {
+    state,
+    setState
+  }
+}
+
+interface StringStateOptions {
+  initialState: string | undefined;
+  onString: (state: string) => void;
+  onStringChange: (state: string | undefined) => void;
+}
+
+const useStringState = (options: StringStateOptions) => {
+  let state = options.initialState;
+
+  const setState = (newState: string | undefined) => {
+    state = newState;
+
+    if (newState !== undefined) {
+      options.onString(newState)
+    };
+
+    options.onStringChange(newState);
+
+    return newState;
+  }
+
+  return {
+    state,
+    setState
+  }
+}

@@ -1,17 +1,34 @@
 import { createAutoPresence } from "./createAutoPresence";
-import type { AutoOptions, User as AutoUser } from "./createAutoPresence";
+import type { AutoOptions, User as AutoUser, AutoOnStatusChange } from "./createAutoPresence";
 import { createManualPresence } from "./createManualPresence";
-import type { ManualOptions, User as ManualUser, DefaultManualStatus, UserOptions } from "./createManualPresence";
+import type { ManualOptions, User as ManualUser, DefaultManualStatus, UserOptions, ManualOnStatusChange } from "./createManualPresence";
 import { createWebsocket } from "./websocket";
+import type { ConnectionFunctions } from "./websocket";
 
 export type Options = AutoOptions | ManualOptions
 
-export function createPresence<Status = DefaultManualStatus>(options: ManualOptions<Status>): (config: UserOptions) => ManualUser<Status>;
-export function createPresence(options: AutoOptions): (config: UserOptions) => AutoUser;
-export function createPresence(options: Options) {
+export function createPresence<Status = DefaultManualStatus>(options: ManualOptions<Status>, wsOptions?: ConnectionFunctions): (config: UserOptions, onStatusChange: ManualOnStatusChange<Status>) => ManualUser<Status>;
+export function createPresence(options: AutoOptions, wsOptions?: ConnectionFunctions): (config: UserOptions, onStatusChange: AutoOnStatusChange) => AutoUser;
+export function createPresence(options: Options, wsOptions?: ConnectionFunctions) {
+
+  console.log("why am I being called")
+  console.log({ options, wsOptions, window })
 
   // this doesn't open the connection thou
-  const connection = createWebsocket();
+  const connection = createWebsocket(wsOptions ?? {});
+
+  // just constantly try to send a ping request
+  console.log('setting interval')
+  setInterval(() => {
+    console.log('attempting ping')
+    const ws = connection.getWS();
+    console.log({ ws })
+    if (ws) {
+      if (ws.OPEN) {
+        ws.send('p');
+      }
+    }
+  }, options.pingInterval * 1000)
 
   if (options.mode === "auto") {
 

@@ -9,9 +9,9 @@ export type ManualOnStatusChange<Status = DefaultManualStatus> = (
 export interface ManualOptions<Status = DefaultManualStatus> {
   mode: "manual";
   api_key: string;
+  pingInterval: number;
   disconnectedStatus: Status;
   connectedStatus: Status;
-  onStatusChange: ManualOnStatusChange<Status>;
 }
 
 export interface UserOptions {
@@ -21,24 +21,43 @@ export interface UserOptions {
 export interface User<Status = DefaultManualStatus> {
   status: Status;
   setStatus: (newStatus: Status) => Status;
-  connect: () => void;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
 }
 
 export function createManualPresence<Status = DefaultManualStatus>(
   options: ManualOptions<Status>,
   connection: Connection
-): ({ userId }: UserOptions) => User<Status> {
-  return ({ userId }) => {
+): ({ userId }: UserOptions, onStatusChange: ManualOnStatusChange<Status>) => User<Status> {
+  return ({ userId }, onStatusChange) => {
     let status: Status = options.disconnectedStatus;
+    let interval: NodeJS.Timer;
 
-    const connect = () => {
-      connection.open()
-      setStatus(options.connectedStatus)
+    const connect = async () => {
+      const ws = await connection.open({
+        auth: {
+          api_key: options.api_key,
+          userId
+        }
+      })
+
+      if (ws) {
+        setStatus(options.connectedStatus)
+      }
+
     }
+
+    const disconnect = async () => {
+      await connection.close();
+      setStatus(options.disconnectedStatus);
+
+      clearInterval(interval)
+    }
+
     const setStatus = (newStatus: Status) => {
       status = newStatus;
 
-      options.onStatusChange(newStatus);
+      onStatusChange(newStatus);
 
       return newStatus;
     };
@@ -46,7 +65,8 @@ export function createManualPresence<Status = DefaultManualStatus>(
     return {
       status,
       setStatus,
-      connect
+      connect,
+      disconnect
     };
   };
 }
