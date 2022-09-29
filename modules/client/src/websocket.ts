@@ -1,5 +1,5 @@
 
-const URL = "ws://localhost:4000"
+const URL = "ws://localhost:3050"
 
 // one hour
 const MAX_CONNECTION_TIME = 1000 * 70
@@ -40,7 +40,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   let ws: WebSocket | undefined;
 
-  const { state: connected, setState: setConnected } = useBooleanState({
+  const { state: connected, setState: setConnected, getState: isConnected } = useBooleanState({
     initialState: false,
     onTrue: functions.onConnect,
     onFalse: functions.onDisconnect,
@@ -61,11 +61,11 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
   })
 
   let timeout: NodeJS.Timeout; // used to open and close connection to ws service
+  let failedAttempts = 0
 
   const open = (options: OpenOptions) => {
 
     return new Promise<WebSocket | undefined>((resolve, reject) => {
-
 
       setConnected(false);
       setLoading(true);
@@ -110,11 +110,18 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
       ws.onerror = (event) => {
 
+        failedAttempts++;
+
         console.log(`connection to ws errored`)
 
         setConnected(false);
         setLoading(false);
         setError(`Error while attempting to connect to user-presence`)
+
+        if (failedAttempts < 3) {
+          console.log({ failedAttempts })
+          open(options)
+        }
 
         reject(`Error while attempting to connect to user-presence`)
       }
@@ -154,8 +161,11 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   const getWS = () => ws;
 
+  const isOpen = isConnected
+
   return {
     getWS,
+    isOpen,
     open,
     close,
     connected,
@@ -178,15 +188,20 @@ const useBooleanState = (options: BooleanStateOptions) => {
   let state = options.initialState
 
   const setState = (newState: boolean) => {
+    state = newState;
+
     newState ? options.onTrue() : options.onFalse();
     options.onToggle(newState);
 
     return newState
   }
 
+  const getState = () => state;
+
   return {
     state,
-    setState
+    setState,
+    getState
   }
 }
 
@@ -211,8 +226,11 @@ const useStringState = (options: StringStateOptions) => {
     return newState;
   }
 
+  const getState = () => state;
+
   return {
     state,
-    setState
+    setState,
+    getState
   }
 }

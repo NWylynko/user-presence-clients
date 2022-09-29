@@ -4,7 +4,7 @@ const presence = createPresenceProvider({
   mode: "auto",
   api_key: "123456",
   pingInterval: 10, // in seconds
-  autoConnect: true
+  autoConnect: false
 })
 
 console.log({ presence })

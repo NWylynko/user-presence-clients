@@ -8,7 +8,7 @@ const presence = createPresence<Status>({
   api_key: "456",
   connectedStatus: "NAHYEAH",
   disconnectedStatus: "YEAHNAH",
-  pingInterval: 60
+  pingInterval: 20
 })
 
 const onStatusChange = (newStatus: Status) => console.log({ online: newStatus === "NAHYEAH", newStatus })
@@ -28,7 +28,7 @@ user.setStatus("NAHYEAH")
 const presence2 = createPresence({
   mode: "auto",
   api_key: "678",
-  pingInterval: 60
+  pingInterval: 20
 })
 
 const onStatusChange2 = (newStatus: AutoStatus) => console.log({ newStatus })

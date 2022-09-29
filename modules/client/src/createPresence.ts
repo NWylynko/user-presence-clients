@@ -11,22 +11,16 @@ export function createPresence<Status = DefaultManualStatus>(options: ManualOpti
 export function createPresence(options: AutoOptions, wsOptions?: ConnectionFunctions): (config: UserOptions, onStatusChange: AutoOnStatusChange) => AutoUser;
 export function createPresence(options: Options, wsOptions?: ConnectionFunctions) {
 
-  console.log("why am I being called")
-  console.log({ options, wsOptions, window })
-
   // this doesn't open the connection thou
   const connection = createWebsocket(wsOptions ?? {});
 
   // just constantly try to send a ping request
-  console.log('setting interval')
   setInterval(() => {
     console.log('attempting ping')
     const ws = connection.getWS();
-    console.log({ ws })
-    if (ws) {
-      if (ws.OPEN) {
-        ws.send('p');
-      }
+    if (connection.isOpen()) {
+      console.log('connection is open')
+      ws.send('p');
     }
   }, options.pingInterval * 1000)
 
