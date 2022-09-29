@@ -1,5 +1,6 @@
 import type { Connection } from "./websocket";
 import type { UserOptions } from "./createManualPresence";
+import { visibility } from "./visibility";
 
 export type Status = "OFFLINE" | "ONLINE" | "AWAY";
 
@@ -29,7 +30,12 @@ export function createAutoPresence(
     let status: Status = "OFFLINE";
 
     const connect = async () => {
-      const ws = await connection.open();
+      const ws = await connection.open({
+        auth: {
+          api_key: options.api_key,
+          userId: userId
+        }
+      });
 
       if (ws) {
         setStatus("ONLINE");
@@ -50,6 +56,8 @@ export function createAutoPresence(
 
       return newStatus;
     };
+
+    visibility(() => setStatus("ONLINE"), () => setStatus("AWAY"))
 
     return {
       status,

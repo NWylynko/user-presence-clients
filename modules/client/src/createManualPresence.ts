@@ -1,3 +1,4 @@
+import { visibility } from "./visibility";
 import type { Connection } from "./websocket";
 
 export type DefaultManualStatus = "ONLINE" | "OFFLINE";
@@ -12,7 +13,16 @@ export interface ManualOptions<Status = DefaultManualStatus> {
   pingInterval: number;
   disconnectedStatus: Status;
   connectedStatus: Status;
+  away: Away<Status>;
 }
+
+type Away<Status> = ({
+  auto: true
+  status: Status
+} | {
+  auto: false
+  status: undefined;
+})
 
 export interface UserOptions {
   userId: string;
@@ -37,7 +47,12 @@ export function createManualPresence<Status = DefaultManualStatus>(
     let status: Status = options.disconnectedStatus;
 
     const connect = async () => {
-      const ws = await connection.open()
+      const ws = await connection.open({
+        auth: {
+          api_key: options.api_key,
+          userId: userId
+        }
+      })
 
       if (ws) {
         setStatus(options.connectedStatus)
@@ -59,6 +74,13 @@ export function createManualPresence<Status = DefaultManualStatus>(
 
       return newStatus;
     };
+
+    if (options.away.auto === true) {
+      visibility(
+        () => setStatus(options.connectedStatus),
+        () => setStatus(options.away.status)
+      )
+    }
 
     return {
       status,

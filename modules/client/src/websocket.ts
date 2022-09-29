@@ -66,7 +66,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
   let timeout: NodeJS.Timeout; // used to open and close connection to ws service
   let failedAttempts = 0
 
-  const open = () => {
+  const open = (options: OpenOptions) => {
 
     return new Promise<WebSocket | undefined>((resolve, reject) => {
 
@@ -84,6 +84,9 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
           setLoading(false);
           setError(undefined);
 
+          // essentially this is being called twice on first connect
+          // but that's not the end of the world lol
+          send({ e: "auth", key: options.auth.api_key, id: options.auth.userId })
 
           timeout = setTimeout(() => {
 
@@ -97,7 +100,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
             ws?.close();
             ws = undefined;
 
-            open();
+            open(options);
           }, connectionTime)
 
         } else {
@@ -117,7 +120,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
         setError(`Error while attempting to connect to user-presence`)
 
         if (failedAttempts < 3) {
-          open()
+          open(options)
         }
 
         reject(`Error while attempting to connect to user-presence`)

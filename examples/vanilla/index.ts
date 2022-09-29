@@ -1,14 +1,18 @@
 
 import { createPresence, AutoStatus } from "@user-presence/client";
 
-type Status = "NAHYEAH" | "YEAHNAH" | "PARTY"
+type Status = "NAHYEAH" | "YEAHNAH" | "PARTY" | "NOT-HERE"
 
 const presence = createPresence<Status>({
   mode: "manual",
   api_key: "456",
   connectedStatus: "NAHYEAH",
   disconnectedStatus: "YEAHNAH",
-  pingInterval: 5
+  pingInterval: 5,
+  away: {
+    auto: true,
+    status: "NOT-HERE"
+  }
 })
 
 // const onStatusChange = (newStatus: Status) => console.log({ online: newStatus === "NAHYEAH", newStatus })
