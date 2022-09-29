@@ -47,11 +47,7 @@ export function createAutoPresence(
 
       onStatusChange(newStatus);
 
-      const ws = connection.getWS()
-
-      if (ws && ws.OPEN) {
-        ws.send(JSON.stringify({ e: "stat", s: newStatus }))
-      }
+      connection.send({ e: "stat", s: newStatus })
 
       return newStatus;
     };

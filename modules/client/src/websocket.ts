@@ -83,7 +83,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
           setLoading(false);
           setError(undefined);
 
-          ws.send(JSON.stringify({ e: "auth", key: options.auth.api_key, id: options.auth.userId }))
+          send({ e: "auth", key: options.auth.api_key, id: options.auth.userId })
 
           timeout = setTimeout(() => {
 
@@ -159,6 +159,23 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   }
 
+  // it would be good to implement a queue so
+  // all messages get delivered eventually
+  const send = (message: string | object) => {
+    const ws = getWS();
+    const open = isOpen();
+
+    if (open) {
+      if (typeof message === "object") {
+        ws.send(JSON.stringify(message))
+      } else if (typeof message === "string") {
+        ws.send(message);
+      } else {
+        throw new Error('sorry that message type is not currently supported :/')
+      }
+    }
+  }
+
   const getWS = () => ws;
 
   const isOpen = isConnected
@@ -170,7 +187,8 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
     close,
     connected,
     loading,
-    error
+    error,
+    send
   };
 
 }
