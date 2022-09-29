@@ -30,16 +30,14 @@ export function createManualPresence<Status = DefaultManualStatus>(
   connection: Connection
 ): ({ userId }: UserOptions, onStatusChange: ManualOnStatusChange<Status>) => User<Status> {
   return ({ userId }, onStatusChange) => {
+
+    // send this straight away to its top of the queue
+    connection.send({ e: "auth", key: options.api_key, id: userId })
+
     let status: Status = options.disconnectedStatus;
-    let interval: NodeJS.Timer;
 
     const connect = async () => {
-      const ws = await connection.open({
-        auth: {
-          api_key: options.api_key,
-          userId
-        }
-      })
+      const ws = await connection.open()
 
       if (ws) {
         setStatus(options.connectedStatus)
@@ -50,8 +48,6 @@ export function createManualPresence<Status = DefaultManualStatus>(
     const disconnect = async () => {
       await connection.close();
       setStatus(options.disconnectedStatus);
-
-      clearInterval(interval)
     }
 
     const setStatus = (newStatus: Status) => {

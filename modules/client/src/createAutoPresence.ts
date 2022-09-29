@@ -22,15 +22,14 @@ export function createAutoPresence(
   connection: Connection
 ): ({ userId }: UserOptions, onStatusChange: AutoOnStatusChange) => User {
   return ({ userId }, onStatusChange) => {
+
+    // send this straight away to its top of the queue
+    connection.send({ e: "auth", key: options.api_key, id: userId })
+
     let status: Status = "OFFLINE";
 
     const connect = async () => {
-      const ws = await connection.open({
-        auth: {
-          api_key: options.api_key,
-          userId,
-        },
-      });
+      const ws = await connection.open();
 
       if (ws) {
         setStatus("ONLINE");

@@ -1,3 +1,4 @@
+import { createStringQueue } from "./stringQueue"
 
 const URL = "ws://localhost:3050"
 
@@ -10,7 +11,9 @@ const connectionTime = MAX_CONNECTION_TIME - 10 * 1000
 
 const defaultVoidFunctions = {
 
-  onConnect: () => { },
+  onConnect: () => {
+    // console.log('connected :)');
+  },
   onDisconnect: () => { },
   onConnectionChange: (connected: boolean) => { },
 
@@ -63,7 +66,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
   let timeout: NodeJS.Timeout; // used to open and close connection to ws service
   let failedAttempts = 0
 
-  const open = (options: OpenOptions) => {
+  const open = () => {
 
     return new Promise<WebSocket | undefined>((resolve, reject) => {
 
@@ -77,13 +80,10 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
         if (ws) {
 
-          console.log(`connection to ws is open`)
-
           setConnected(true);
           setLoading(false);
           setError(undefined);
 
-          send({ e: "auth", key: options.auth.api_key, id: options.auth.userId })
 
           timeout = setTimeout(() => {
 
@@ -97,7 +97,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
             ws?.close();
             ws = undefined;
 
-            open(options);
+            open();
           }, connectionTime)
 
         } else {
@@ -112,15 +112,12 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
         failedAttempts++;
 
-        console.log(`connection to ws errored`)
-
         setConnected(false);
         setLoading(false);
         setError(`Error while attempting to connect to user-presence`)
 
         if (failedAttempts < 3) {
-          console.log({ failedAttempts })
-          open(options)
+          open()
         }
 
         reject(`Error while attempting to connect to user-presence`)
@@ -138,8 +135,6 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
       if (ws) {
         ws.onclose = (event) => {
-
-          console.log(`connection to ws is closed`)
 
           setConnected(false);
           setLoading(false);
@@ -159,20 +154,24 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   }
 
-  // it would be good to implement a queue so
-  // all messages get delivered eventually
-  const send = (message: string | object) => {
+  const msgQueue = createStringQueue((msg) => {
     const ws = getWS();
-    const open = isOpen();
+    const open = isOpen()
 
     if (open) {
-      if (typeof message === "object") {
-        ws.send(JSON.stringify(message))
-      } else if (typeof message === "string") {
-        ws.send(message);
-      } else {
-        throw new Error('sorry that message type is not currently supported :/')
-      }
+      ws.send(msg)
+    } else {
+      throw new Error(`Connection isn't open yet`)
+    }
+  })
+
+  const send = (message: string | object) => {
+    if (typeof message === "object") {
+      msgQueue.add(JSON.stringify(message))
+    } else if (typeof message === "string") {
+      msgQueue.add(message);
+    } else {
+      throw new Error('sorry that message type is not currently supported :/')
     }
   }
 

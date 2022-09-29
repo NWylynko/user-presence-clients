@@ -16,7 +16,6 @@ export function createPresence(options: Options, wsOptions?: ConnectionFunctions
 
   // just constantly try to send a ping request
   setInterval(() => {
-    console.log('attempting ping')
     connection.send('p')
   }, options.pingInterval * 1000)
 

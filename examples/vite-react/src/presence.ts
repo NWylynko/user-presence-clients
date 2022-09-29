@@ -4,10 +4,8 @@ const presence = createPresenceProvider({
   mode: "auto",
   api_key: "123456",
   pingInterval: 10, // in seconds
-  autoConnect: false
+  autoConnect: true
 })
-
-console.log({ presence })
 
 export const PresenceProvider = presence.Provider;
 export const usePresence = presence.useContext;
