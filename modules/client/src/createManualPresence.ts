@@ -61,7 +61,10 @@ export function createManualPresence<Status = DefaultManualStatus>(
 
       const ws = connection.getWS()
 
-      if (ws) {
+      // it would be good to implement a queue so
+      // if the state changes while connecting or if the user loses connection
+      // then status gets updated and doesn't just silently fail
+      if (ws && ws.OPEN) {
         ws.send(JSON.stringify({ e: "stat", s: newStatus }))
       }
 

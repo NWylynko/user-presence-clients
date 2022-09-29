@@ -15,7 +15,7 @@ const onStatusChange = (newStatus: Status) => console.log({ online: newStatus ==
 
 const user = presence({ userId: "123" }, onStatusChange)
 
-user.connect();
+await user.connect();
 
 console.log({ presence, user })
 console.log({
@@ -35,7 +35,7 @@ const onStatusChange2 = (newStatus: AutoStatus) => console.log({ newStatus })
 
 const user2 = presence2({ userId: "789" }, onStatusChange2)
 
-user2.connect();
+await user2.connect();
 
 
 console.log({ presence2, user2 })

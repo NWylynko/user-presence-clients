@@ -49,7 +49,7 @@ export function createAutoPresence(
 
       const ws = connection.getWS()
 
-      if (ws) {
+      if (ws && ws.OPEN) {
         ws.send(JSON.stringify({ e: "stat", s: newStatus }))
       }
 
