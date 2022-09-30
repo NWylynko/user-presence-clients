@@ -1,4 +1,5 @@
 import express from 'express'
+import { client } from "@user-presence/server"
 
 const app = express()
 const port = 3001
