@@ -18,6 +18,9 @@ export const getUser = <Status>(opts: Options) => async (userId: string) => {
 
   const { data } = response.data;
 
-  return data;
+  return {
+    ...data,
+    lastPing: new Date(data.lastPing)
+  };
 
 }

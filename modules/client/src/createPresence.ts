@@ -1,36 +1,108 @@
-import { createAutoPresence } from "./createAutoPresence";
-import type { AutoOptions, User as AutoUser, AutoOnStatusChange } from "./createAutoPresence";
-import { createManualPresence } from "./createManualPresence";
-import type { ManualOptions, User as ManualUser, DefaultManualStatus, UserOptions, ManualOnStatusChange } from "./createManualPresence";
-import { createWebsocket } from "./websocket";
-import type { ConnectionFunctions } from "./websocket";
+import { visibility } from "./visibility";
+import { type ConnectionFunctions, createWebsocket } from "./websocket";
 
-export type Options = AutoOptions | ManualOptions
+export type DefaultStatus = "ONLINE" | "AWAY" | "OFFLINE"
 
-export function createPresence<Status = DefaultManualStatus>(options: ManualOptions<Status>, wsOptions?: ConnectionFunctions): (config: UserOptions, onStatusChange: ManualOnStatusChange<Status>) => ManualUser<Status>;
-export function createPresence(options: AutoOptions, wsOptions?: ConnectionFunctions): (config: UserOptions, onStatusChange: AutoOnStatusChange) => AutoUser;
-export function createPresence(options: Options, wsOptions?: ConnectionFunctions) {
+export type Options<Status> = {
+  api_key: string;
+  pingInterval: number;
+  disconnectedStatus?: Status;
+  connectedStatus?: Status;
+  away?: Away<Status>;
+}
 
-  // this doesn't open the connection thou
-  const connection = createWebsocket(wsOptions ?? {});
+export type Away<Status> = ({
+  auto: true;
+  status?: Status;
+} | {
+  auto: false;
+  status?: undefined;
+})
+
+export interface UserOptions {
+  userId: string;
+}
+
+export type OnStatusChange<Status = DefaultStatus> = (
+  newStatus: Status
+) => void | Promise<void>;
+
+export interface User<Status = DefaultStatus> {
+  status: Status;
+  setStatus: (newStatus: Status) => Status;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+
+export const createPresence = <Status = DefaultStatus>(options: Options<Status>, wsOptions?: ConnectionFunctions) => {
+
+  const mergedOptions: Options<Status> = {
+    // @ts-ignore
+    disconnectedStatus: "OFFLINE",
+    // @ts-ignore
+    connectedStatus: "ONLINE",
+    away: {
+      auto: true,
+    },
+    ...options
+  }
+
+  const connection = createWebsocket(wsOptions);
 
   // just constantly try to send a ping request
   setInterval(() => {
     connection.send('p')
-  }, options.pingInterval * 1000)
+  }, mergedOptions.pingInterval * 1000)
 
-  if (options.mode === "auto") {
+  return ({ userId }: UserOptions, onStatusChange: OnStatusChange<Status>) => {
 
-    return createAutoPresence(options, connection);
+    // send this straight away to its top of the queue
+    connection.send({ e: "auth", key: mergedOptions.api_key, id: userId })
 
-  } else if (options.mode === "manual") {
+    let status = mergedOptions.disconnectedStatus;
 
-    return createManualPresence(options, connection);
+    const connect = async () => {
+      const ws = await connection.open({
+        auth: {
+          api_key: mergedOptions.api_key,
+          userId: userId
+        }
+      })
 
-  } else {
+      if (ws) {
+        setStatus(mergedOptions.connectedStatus)
+      }
 
-    throw new Error(`The mode ${(options as any).mode} is not supported, choice either auto or manual`);
+    }
+
+    const disconnect = async () => {
+      await connection.close();
+      setStatus(mergedOptions.disconnectedStatus);
+    }
+
+    const setStatus = (newStatus: Status) => {
+      status = newStatus;
+
+      onStatusChange(newStatus);
+
+      connection.send({ e: "stat", s: newStatus })
+
+      return newStatus;
+    };
+
+    if (mergedOptions.away.auto === true) {
+      visibility(
+        () => setStatus(mergedOptions.connectedStatus),
+        () => setStatus(mergedOptions.away.status)
+      )
+    }
+
+    return {
+      status,
+      setStatus,
+      connect,
+      disconnect
+    };
 
   }
-
 }

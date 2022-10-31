@@ -35,7 +35,7 @@ interface OpenOptions {
   }
 }
 
-export const createWebsocket = (customFunctions: ConnectionFunctions) => {
+export const createWebsocket = (customFunctions: ConnectionFunctions = {}) => {
 
   // this is just to make calling the functions cleaner
   // as we don't have to check if they are defined or not
@@ -43,21 +43,21 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   let ws: WebSocket | undefined;
 
-  const { state: connected, setState: setConnected, getState: isConnected } = useBooleanState({
+  const { setState: setConnected, getState: isConnected } = useBooleanState({
     initialState: false,
     onTrue: functions.onConnect,
     onFalse: functions.onDisconnect,
     onToggle: functions.onConnectionChange,
   });
 
-  const { state: loading, setState: setLoading } = useBooleanState({
+  const { setState: setLoading, getState: isLoading } = useBooleanState({
     initialState: false,
     onTrue: functions.onStartLoading,
     onFalse: functions.onStopLoading,
     onToggle: functions.onLoadingChange,
   })
 
-  const { state: error, setState: setError } = useStringState({
+  const { setState: setError, getState: hasError } = useStringState({
     initialState: undefined,
     onString: functions.onError,
     onStringChange: functions.onErrorChange
@@ -159,7 +159,7 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   const msgQueue = createStringQueue((msg) => {
     const ws = getWS();
-    const open = isOpen()
+    const open = isConnected()
 
     if (open) {
       ws.send(msg)
@@ -180,16 +180,13 @@ export const createWebsocket = (customFunctions: ConnectionFunctions) => {
 
   const getWS = () => ws;
 
-  const isOpen = isConnected
-
   return {
     getWS,
-    isOpen,
+    isOpen: isConnected,
+    isLoading,
+    hasError,
     open,
     close,
-    connected,
-    loading,
-    error,
     send
   };
 
@@ -219,7 +216,6 @@ const useBooleanState = (options: BooleanStateOptions) => {
   const getState = () => state;
 
   return {
-    state,
     setState,
     getState
   }
@@ -249,7 +245,6 @@ const useStringState = (options: StringStateOptions) => {
   const getState = () => state;
 
   return {
-    state,
     setState,
     getState
   }

@@ -14,6 +14,9 @@ export const getUsers = <Status>(opts: Options) => async () => {
 
   const { data } = response.data;
 
-  return data;
+  return data.map((user) => ({
+    ...user,
+    lastPing: new Date(user.lastPing)
+  }))
 
 }

@@ -7,8 +7,10 @@ export const visibility = (setOnline: Function, setAway: Function) => {
     const visible = document.visibilityState === 'visible';
 
     if (visible) {
+      console.log(`client is visible`)
       setOnline()
     } else {
+      console.log(`client is not visible`)
       setAway();
     }
 

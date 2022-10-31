@@ -5,7 +5,7 @@ export interface Options {
   api_key: string;
 }
 
-type DefaultStatus = "OFFLINE" | "ONLINE" | "AWAY"
+export type DefaultStatus = "OFFLINE" | "ONLINE" | "AWAY"
 
 export const client = <Status = DefaultStatus>(options: Options) => {
   return {

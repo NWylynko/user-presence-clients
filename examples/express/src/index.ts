@@ -1,11 +1,20 @@
 import express from 'express'
-import { client } from "@user-presence/server"
+import { presence } from "@user-presence/server"
 
 const app = express()
 const port = 3001
 
-app.get('/', (req, res) => {
-  res.send('Hello World!')
+const userPresence = presence({
+  api_key: "678"
+})
+
+app.get('/', async (req, res) => {
+
+  const userId = "789" // get this from req / jwt
+
+  const status = await userPresence.getUser(userId)
+
+  res.json(status)
 })
 
 app.listen(port, () => {
