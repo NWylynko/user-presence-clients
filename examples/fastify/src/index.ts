@@ -1,16 +1,16 @@
 import Fastify from 'fastify'
-import { client } from "@user-presence/server"
+import { initPresence } from "@user-presence/server"
 
 const app = Fastify({ logger: true })
 const port = 3002
 
-const presence = client({
+const presence = initPresence({
   api_key: "123456"
 })
 
 app.get('/', async () => {
 
-  const users = await presence.getUsers()
+  const users = await presence.getUsers() // gets you a list of all your users status's
 
   return users
 })

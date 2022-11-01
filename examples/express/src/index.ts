@@ -1,10 +1,10 @@
 import express from 'express'
-import { presence } from "@user-presence/server"
+import { initPresence } from "@user-presence/server"
 
 const app = express()
 const port = 3001
 
-const userPresence = presence({
+const presence = initPresence({
   api_key: "678"
 })
 
@@ -12,7 +12,7 @@ app.get('/', async (req, res) => {
 
   const userId = "789" // get this from req / jwt
 
-  const status = await userPresence.getUser(userId)
+  const status = await presence.getUser(userId)
 
   res.json(status)
 })
